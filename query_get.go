@@ -1,7 +1,6 @@
 package odeskidb
 
 import (
-	"bytes"
 	"strings"
 )
 
@@ -25,9 +24,12 @@ func (q *get) SetKey(newKey string) error {
 	}
 }
 
-//TODO: make better error message/format
-func (q get) Execute() (query, string, error) {
+/*
+TODO: make better error message/format
 
+WARNING: this method won't work when we buffer changes
+*/
+func (q get) Execute() (query, string, error) {
 	var result string
 
 	if !isDatabaseInitalized() {
@@ -37,26 +39,8 @@ func (q get) Execute() (query, string, error) {
 		}
 	}
 
-	const colonByte byte = 58
-	const newLineByte byte = 10
-
-	keyStartIndex := bytes.Index(
-		databaseCache,
-		append(
-			append([]byte{newLineByte}, q.key...),
-			colonByte,
-		),
-	)
-
-	if keyStartIndex >= 0 {
-		valueStartIndex := keyStartIndex + 1 + len(q.key)
-		valueEndIndex := valueStartIndex
-
-		for databaseCache[valueEndIndex] != newLineByte {
-			valueEndIndex++
-		}
-
-		result = string(databaseCache[valueStartIndex+1 : valueEndIndex])
+	if value, ok := databaseCache[q.Key()]; ok {
+		result = string(value)
 	}
 
 	return q, result, nil

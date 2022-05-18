@@ -1,3 +1,6 @@
+/*
+TODO: Place all errors here, for communication perposes
+*/
 package odeskidb
 
 import (

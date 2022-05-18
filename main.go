@@ -11,7 +11,10 @@ import (
 var databasePath string
 
 // adding a global cache adds new problems
-var databaseCache []byte // WARNING: Dangerous
+var databaseCache map[string][]byte // WARNING: Dangerous
+
+const colonByte byte = 58
+const newLineByte byte = 10
 
 func NewGet(key string) (*get, error) {
 	newQuery := get{}
@@ -37,8 +40,8 @@ func NewSet(key string, value string) (*set, error) {
 	return &newQuery, nil
 }
 
-func NewDelete(key string) (*delete, error) {
-	newQuery := delete{}
+func NewRemove(key string) (*remove, error) {
+	newQuery := remove{}
 
 	if err := newQuery.SetKey(key); err != nil {
 		return nil, err
@@ -75,7 +78,7 @@ func InitalizeOdeski(path string) error {
 
 		return nil
 	}
-	initalizeCache := func() ([]byte, error) {
+	initalizeCache := func() (map[string][]byte, error) {
 		fileFormatError := errors.New("odeskidb: func InitalizeOdeski(): The database's file(s) is/are not properily formated")
 
 		var databaseFile, openingFileError = os.Open(databasePath + "odeski.db")
@@ -94,16 +97,21 @@ func InitalizeOdeski(path string) error {
 			return nil, readingFileError
 		}
 		databaseFile.Close()
-		const colonByte byte = 58
-		const newLineByte byte = 10
 
 		if databaseData[0] != newLineByte ||
 			databaseData[len(databaseData)-1] != newLineByte {
 			return nil, fileFormatError
 		}
 
-		return databaseData, nil
+		databaseMap, deserializationError := deserializeToMap(databaseData)
+		if deserializationError != nil {
+			return nil, deserializationError
+		}
+
+		return databaseMap, nil
 	}
+
+	databasePath = path
 
 	initalizeDatabaseError := initalizeDatabase(path)
 	if initalizeDatabaseError != nil {
@@ -112,7 +120,6 @@ func InitalizeOdeski(path string) error {
 		return initalizeDatabaseError
 	}
 
-	databasePath = path
 	databaseCache, initalizeCacheError = initalizeCache()
 	if initalizeCacheError != nil {
 		databasePath = ""

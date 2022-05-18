@@ -2,7 +2,6 @@ package odeskidb
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 )
 
@@ -45,8 +44,6 @@ func (q *set) SetValue(newValue string) error {
 
 func (q set) Execute() (query, string, error) {
 	//you currently have no convenient method to test wheither set is properily set.
-	fileFormatError := errors.New("odeskidb: struct Set: func Execute(): The database's file(s) is not properily formated")
-
 	var result string
 
 	if !isDatabaseInitalized() {
@@ -56,56 +53,28 @@ func (q set) Execute() (query, string, error) {
 		}
 	}
 
-	const colonByte byte = 58
-	const newLineByte byte = 10
-
-	if databaseCache[len(databaseCache)-1] != newLineByte {
-		return q, result, fileFormatError
+	value, ok := databaseCache[q.Key()]
+	if !ok || !bytes.Equal(value, q.value) {
+		databaseCache[q.Key()] = q.value
 	}
 
-	var newDatabaseFileData []byte
-
-	newDatabaseEntry := append(
-		append(q.key, colonByte),
-		append(q.value, newLineByte)...,
-	)
-
-	keyStartIndex := bytes.Index(
-		databaseCache,
-		append(
-			append([]byte{newLineByte}, q.key...),
-			colonByte,
-		),
-	)
-
-	if keyStartIndex >= 0 {
-		valueStartIndex := keyStartIndex + 1 + len(q.key)
-		valueEndIndex := valueStartIndex
-		for databaseCache[valueEndIndex] != newLineByte {
-			valueEndIndex++
+	newData, serializationError := serializeToBytes(databaseCache)
+	if serializationError != nil {
+		if !ok {
+			delete(databaseCache, q.Key())
+		} else if ok && !bytes.Equal(value, q.value) {
+			databaseCache[q.Key()] = value
 		}
 
-		newDatabaseFileData = bytes.Replace(
-			databaseCache,
-			databaseCache[keyStartIndex+1:valueEndIndex+1],
-			newDatabaseEntry,
-			1,
-		)
-	} else {
-		newDatabaseFileData = append(
-			databaseCache,
-			newDatabaseEntry...,
-		)
+		return q, result, serializationError
 	}
 
-	if writingFileError := overwriteDatabase(
-		newDatabaseFileData,
-	); writingFileError != nil {
-		_ = overwriteDatabase(databaseCache) // this is a revert
-		return q, result, writingFileError
+	databaseWriteError := overwriteDatabase(newData)
+	if databaseWriteError != nil {
+		// how can we solve this in a way that does not lead to nil again?
+		//TODO: how to revert from a failed overwrite?
+		return q, result, databaseWriteError
 	}
-
-	databaseCache = newDatabaseFileData
 
 	return q, result, nil
 }
