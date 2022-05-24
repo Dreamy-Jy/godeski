@@ -26,3 +26,12 @@ type UninitializedDatabaseError struct {
 func (err UninitializedDatabaseError) Error() string {
 	return fmt.Sprintf("UninitializedDatabaseError | odeskidb: %s:\n\t%s", err.location, err.message)
 }
+
+type ImproperlyFormatedDataError struct {
+	location string
+	message  string
+}
+
+func (err ImproperlyFormatedDataError) Error() string {
+	return fmt.Sprintf("ImproperlyFormatedDataError | odeskidb: %s:\n\t%s", err.location, err.message)
+}
