@@ -47,6 +47,12 @@ func (q remove) Execute() (query, string, error) {
 	if serializationError != nil {
 		if ok {
 			databaseCache[q.Key()] = value
+			newData, _ = serializeToBytes(databaseCache)
+			/*
+				WARNING: using a tested function with it's test
+				seems like it will create a an issue that is
+				cyclic in nature.
+			*/
 		}
 		return q, result, serializationError
 	}

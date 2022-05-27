@@ -69,8 +69,7 @@ func (q set) Execute() (query, string, error) {
 		return q, result, serializationError
 	}
 
-	databaseWriteError := overwriteDatabase(newData)
-	if databaseWriteError != nil {
+	if databaseWriteError := overwriteDatabase(newData); databaseWriteError != nil {
 		// how can we solve this in a way that does not lead to nil again?
 		//TODO: how to revert from a failed overwrite?
 		return q, result, databaseWriteError

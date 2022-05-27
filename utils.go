@@ -3,6 +3,7 @@ package odeskidb
 import "os"
 
 func isDatabaseInitalized() bool {
+	// NOTE: We may want to include a check for the cache
 
 	if databasePath == "" {
 		return false

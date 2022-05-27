@@ -13,7 +13,7 @@ func TestGet_Execute(t *testing.T) {
 	}
 	_, result, getExecutionError := g1.Execute()
 	if getExecutionError != nil {
-		t.Fatalf("The GET query was not created. The error is on the following line.\n%s", getError)
+		t.Fatalf("The GET query was not created. The error is on the following line.\n%s", getExecutionError)
 	}
 	if result != "world" {
 		t.Error("GET did not return the proper result.")
