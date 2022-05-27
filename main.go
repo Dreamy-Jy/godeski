@@ -129,3 +129,14 @@ func InitalizeOdeski(path string) error {
 
 	return nil
 }
+
+func TerminateOdeski() error {
+	if deleteFileError := os.Remove(databasePath + "odeski.db"); deleteFileError != nil {
+		return deleteFileError
+	}
+
+	databasePath = ""
+	databaseCache = nil
+
+	return nil
+}
