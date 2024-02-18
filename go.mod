@@ -1,3 +1,3 @@
-module github.com/Jy-Learning/odeskiDB
+module github.com/Dreamy-Jy/godeski
 
-go 1.18
+go 1.22
