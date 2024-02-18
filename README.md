@@ -1,3 +1,5 @@
-# odeskiDB
+# godeski
 
-odeski is a embedded ordered key value store designed to run in concurrent in environments.
+This is the golang implementation of odeski.
+
+odeski is a key-value store.
